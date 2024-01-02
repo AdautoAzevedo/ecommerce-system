@@ -7,12 +7,13 @@ const verifyJWT = (req, res, next) => {
         return res.sendStatus(401);
     }
     const token = authHeader.split(' ')[1];
-
+  
+    console.log("Token at verifyJWT: ", token);
     jwt.verify(
         token,
         process.env.ACCESS_TOKEN_SECRET,
         (err, decoded) => {
-            if (err) return res.sendStatus(403);
+            if (err) return res.status(403).json({'message': err});
           
             if (!req.user) {
                 req.user = {};

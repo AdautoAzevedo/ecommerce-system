@@ -12,7 +12,9 @@ const getAllProducts = async (req, res) => {
 };
 
 const storeNewProduct = async (req, res) => {
+    console.log(req.body);
     const {name, price, categoryId} = req.body;
+    console.log("CATEGORYID: ", categoryId );
     const category = await Category.findByPk(categoryId);
     if (!category) return res.status(400).json({message: 'Category not found'});
 
@@ -23,8 +25,9 @@ const storeNewProduct = async (req, res) => {
                 product_price: price,
                 category_id: categoryId
             });
-        return res.status(201).json(newProduct);
+        res.status(201).json({newProduct});
     } catch (error) {
+        console.log("ERROR AQUI:",error.message);
         res.status(500).json({error: error.message});
     }
 };

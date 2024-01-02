@@ -6,7 +6,6 @@ require('dotenv').config();
 const handleLogin = async (req, res) => {
     const {userName, password} = req.body;
    
-
     try {
         const user = await User.findOne({
             where: {
@@ -18,7 +17,6 @@ const handleLogin = async (req, res) => {
 
         const match = await bcrypt.compare(password, user.user_password);
         if (match) {
-            
             const accessToken = jwt.sign(
                 {
                     "user_id": user.dataValues.user_id,
@@ -27,16 +25,13 @@ const handleLogin = async (req, res) => {
                 process.env.ACCESS_TOKEN_SECRET,
                 {expiresIn: '20m'}
             )
-            //Create Refresh???
             try {
                 const cart = await user.createCart();
-
                 console.log("Cart created:", cart);
             } catch (error) {
                 console.log("Erro ao criar carro: ", error);
             }
             
-
             res.status(200).json({accessToken});
 
         } else {

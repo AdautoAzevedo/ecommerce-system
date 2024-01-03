@@ -36,14 +36,13 @@ const getProductById = async (req, res) => {
     const {index} = req.params;
 
     try {
-        const product = await Product.findAll({
-            where: {product_id: index}
-        });
+        const product = await Product.findByPk(index);
 
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
-        res.status(201).json(product);
+        console.log("Product found: ", product);
+        return res.status(201).json(product);
     } catch (error) {
         res.status(500).json({error: error.message});
     } 

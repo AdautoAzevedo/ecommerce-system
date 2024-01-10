@@ -12,6 +12,7 @@ const getAllCategories = async (req, res) => {
 };
 
 const storeNewCategory = async (req, res) => {
+      
     const {name} = req.body;
     try {
         const newCategory = await category.create(

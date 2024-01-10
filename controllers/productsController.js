@@ -4,7 +4,6 @@ const Category = require('../model/category');
 const getAllProducts = async (req, res) => {
     try {
         const productsList = await Product.findAll();
-        console.log(productsList);
         return res.json(productsList);
     } catch (error) {
         res.status(500).json({error: error.message});
@@ -12,10 +11,9 @@ const getAllProducts = async (req, res) => {
 };
 
 const storeNewProduct = async (req, res) => {
-    console.log(req.body);
     const {name, price, categoryId} = req.body;
-    console.log("CATEGORYID: ", categoryId );
     const category = await Category.findByPk(categoryId);
+
     if (!category) return res.status(400).json({message: 'Category not found'});
 
     try {
@@ -25,9 +23,11 @@ const storeNewProduct = async (req, res) => {
                 product_price: price,
                 category_id: categoryId
             });
+
         res.status(201).json({newProduct});
+
     } catch (error) {
-        console.log("ERROR AQUI:",error.message);
+        console.log("ERROR: ",error.message);
         res.status(500).json({error: error.message});
     }
 };
@@ -41,8 +41,9 @@ const getProductById = async (req, res) => {
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
-        console.log("Product found: ", product);
+
         return res.status(201).json(product);
+
     } catch (error) {
         res.status(500).json({error: error.message});
     } 
@@ -60,7 +61,9 @@ const editProduct = async (req, res) => {
             },
             {where: {product_id: index}}
         );
+
         return res.status(200).json(updatedProduct);
+
     } catch (error) {
         res.status(500).json({error: error.message});
     }
@@ -79,24 +82,27 @@ const deleteProduct = async (req, res) => {
         await Product.destroy({
             where: {product_id: index}
         });
+
         res.json({message: 'Product deleted sucessfully'});
+
     } catch (error) {
         res.status(500).json({error: error.message});
     }
 };
 
 const getProductsByCategory = async(req, res) => {
-    const categoryId = req.params.category_id;
+    const { category_id } = req.params;
     try {
-        const category = await Category.findByPk(categoryId, {
+        const category = await Category.findByPk(category_id, {
             include: Product,
         });
-        console.log(category);
+
         if (!category) {
             return res.status(404).json({message: 'Category not found'});
         }
 
         res.json(category.products);
+        
     } catch (error) {
         res.status(500).json({error: error.message});
     }

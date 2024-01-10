@@ -25,11 +25,12 @@ const handleLogin = async (req, res) => {
                 process.env.ACCESS_TOKEN_SECRET,
                 {expiresIn: '20m'}
             )
+
             try {
                 const cart = await user.createCart();
                 console.log("Cart created:", cart);
             } catch (error) {
-                console.log("Erro ao criar carro: ", error);
+                console.log("Error creating cart: ", error);
             }
             
             res.status(200).json({accessToken});

@@ -4,8 +4,8 @@ const bcrypt = require('bcrypt');
 const getAllUsers = async (req, res) => {
     try {
         const usersList = await user.findAll();
-        console.log(usersList);
         return res.json(usersList);
+
     } catch (error) {
         res.status(500).json({error: error.message});
     }
@@ -36,9 +36,11 @@ const getUserById = async (req, res) => {
         const user = await user.findAll({
             where:{user_id: index}
         });
+
         if (!user) {
             return res.status(404).json({error: 'User not found'});
         };
+
         res.status(201).json(user);
     } catch (error) {
         res.status(500).json({error: error.message});
@@ -57,7 +59,9 @@ const editUser = async (req, res) => {
             }, 
             {where: {user_id: index}}
         );
+
         return res.status(200).json(updatedUser);
+
     } catch (error) {
         res.status(500).json({error: error.message});
     }
@@ -72,9 +76,11 @@ const deleteUser = async (req, res) => {
         if (!account) {
             return res.status(404).json({error: 'User not found'});
         }
+        
         await user.destroy({
             where: {user_id: index}
         });
+
         res.json({message: 'User account deleted sucessfully'});
     } catch (error) {
         res.status(500).json({error: error.message});

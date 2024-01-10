@@ -2,11 +2,11 @@ const Order = require('../model/order');
 
 const processPayment = async (req, res) => {
     try {
-        const userId = req.user.user_id;
-        const cardInfo = req.body.cardInfo;
+        const { user_id } = req.user;
+        const { cardInfo } = req.body;
 
         const orderDetails = await Order.findOne({
-            where: {user_id: userId},
+            where: {user_id: user_id},
         });
 
         if (!orderDetails) {
@@ -19,8 +19,8 @@ const processPayment = async (req, res) => {
 
         if (paymentSuccess) {
             await orderDetails.update({ status: 'paid' });
-            console.log("Order details after success : ", orderDetails);
             return res.status(200).json({message: "Payment successful", totalPrice});
+            
         } else {
             return res.status(400).json({ message: 'Payment failed. Please try again.' });
         }

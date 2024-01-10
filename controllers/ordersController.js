@@ -4,28 +4,23 @@ const CartItem = require('../model/cartItem');
 
 const processOrder = async (req, res) => {
     try {
-        const userId = req.user.user_id;
-        const cart = await Cart.findOne({where: {user_id:userId}, include: [CartItem]});
+        const { user_id } = req.user;
+        const cart = await Cart.findOne({where: {user_id:user_id}, include: [CartItem]});
 
         if (!cart) {
             throw new Error('Cart not found');
         }
-       
 
         const cartItems = cart.cartItems.map((item) => ({
             product_id: item.product_id,
             quantity: item.quantity,
         }));
-        
         const totalPrice = cart.totalPrice;
 
-        console.log('User_id: ', userId);
-        console.log(totalPrice);
         const order = await Order.create({
-            user_id: userId,
+            user_id: user_id,
             totalPrice: totalPrice,
         });
-        console.log(order);
 
         await order.addProducts(cartItems);
         await cart.setCartItems([]);

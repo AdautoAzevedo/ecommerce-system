@@ -3,19 +3,13 @@ const CartItem = require('../model/cartItem');
 const Product = require('../model/product');
 
 const addItem = async (req, res) => {
-
-    const userId = req.user.user_id;
-    const productId = req.body.productId;
+    const {user_id} = req.user;
+    const {productId }= req.body;
 
     try {
         const cart = await Cart.findOne({
-            where: {user_id: userId},
-            include: [
-                {
-                    model: CartItem,
-                    include: [Product],
-                },
-            ],
+            where: {user_id: user_id},
+            include: [{ model: CartItem, include: [Product] }],
         });
 
         if (!cart) return res.status(404).send('Cart not found');
@@ -30,25 +24,11 @@ const addItem = async (req, res) => {
         }
 
         const updatedCart = await Cart.findByPk(cart.cart_id, {
-            include: [
-                {
-                    model: CartItem,
-                    include: [Product],
-                },
-            ],
+            include: [{model: CartItem, include: [Product] }],
         });
 
-
-        let totalCartPrice = 0;
-
-        updatedCart.cartItems.forEach((item) => {
-            const product = item.product;
-            const itemTotalPrice = parseFloat(product.product_price) * item.quantity;
-            totalCartPrice += itemTotalPrice;
-        });
-        console.log("Total price in addItem ", totalCartPrice.toFixed(2));
-        
-        await updatedCart.update({totalPrice: totalCartPrice.toFixed(2)});            
+        let totalCartPrice = calculateTotalCartPrice(updatedCart.cartItems);
+        await updatedCart.update({ totalPrice: totalCartPrice.toFixed(2) });            
         
         res.status(200).send('Item added to the cart');
     } catch (error) {
@@ -58,24 +38,19 @@ const addItem = async (req, res) => {
 };
 
 const viewCart = async (req, res) => {
-    const userId = req.user.user_id;
+    const { user_id } = req.user;
 
     try {
         const cart = await Cart.findOne({
-            where: {user_id: userId},
-            include: [
-                {
-                    model: CartItem,
-                    include: [Product],
-                },
-            ],
+            where: {user_id: user_id},
+            include: [{ model: CartItem, include: [Product] }],
         });
 
         if (!cart) return res.status(404).send('Cart not found');
 
         const cartItems = await cart.getCartItems();
 
-        if (!cartItems) {
+        if (!cartItems || cartItems.length === 0) {
             return res.status(200).json([]); 
         }
 
@@ -86,6 +61,7 @@ const viewCart = async (req, res) => {
             totalPrice += itemTotalPrice;
 
             return{
+                item_id: item.cart_item_id,
                 product_name: product.product_name,
                 quantity: item.quantity,
                 total_price: itemTotalPrice,
@@ -101,17 +77,19 @@ const viewCart = async (req, res) => {
 
 
 const removeFromCart = async(req, res) => {
-    const userId = req.user.id;
-    const cartItemId = req.params.cartItemId;
+    const { user_id } = req.user;
+    const { cartItemId } = req.params;
     
     try {
         const deletedItem = await CartItem.destroy({
             where: {cart_item_id: cartItemId},
-            include: [Cart],
-            where: {
-                '$Cart.user_id$': userId
-            }
-        });
+            include: [{
+                model: Cart,
+                where: {
+                    user_id: user_id
+                }
+            }]
+        });    
         if (deletedItem === 0) return res.status(404).send('Item not found in the cart');
 
         res.status(200).send('Item removed from the cart');
@@ -122,21 +100,22 @@ const removeFromCart = async(req, res) => {
 }
 
 const updateCartItems = async(req, res) => {
-    const userId = req.user.id;
-    const cartItemId = req.params.cartItemId;
-    const newQuantity = req.body.quantity;
+    const { user_id } = req.user;
+    const { cartItemId } = req.params;
+    const  newQuantity  = req.body.quantity;
 
     try {
         const result = await CartItem.update(
             {quantity: newQuantity},
             {
                 where: {cart_item_id: cartItemId},
-                include:[Cart],
-                where: {
-                    '$Cart.user_id$': userId
-                },
-            }
-        );
+                include: [{
+                    model: Cart,
+                    where: {
+                        user_id: user_id
+                    }
+                }]
+        });
 
         if (result[0] === 0) {
             return res.status(404).send('Item not found in the cart');
@@ -148,4 +127,15 @@ const updateCartItems = async(req, res) => {
         res.status(500).send('Failed to update cart item');
     }
 }
+
+const calculateTotalCartPrice = (cartItems) => {
+    let totalCartPrice = 0;
+    cartItems.forEach((item) => {
+        const itemTotalPrice = parseFloat(item.product.product_price) *item.quantity;
+        totalCartPrice += itemTotalPrice;
+
+    })
+    return totalCartPrice;
+}
+
 module.exports = {addItem, viewCart, updateCartItems, removeFromCart};

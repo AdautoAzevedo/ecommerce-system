@@ -54,6 +54,7 @@ const viewCart = async (req, res) => {
             return res.status(200).json([]); 
         }
 
+
         let totalPrice = 0;
         const cartContents = cart.cartItems.map((item) => {
             const product = item.product;

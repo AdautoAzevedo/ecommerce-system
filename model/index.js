@@ -24,9 +24,9 @@ User.hasMany(Order, {foreignKey: 'user_id'});
 Order.belongsToMany(Product, {through: OrderItem});
 Product.belongsToMany(Order, {through: OrderItem});
 
-Order.hasMany(OrderItem);
-OrderItem.belongsTo(Order), {foreignKey: 'order_id'};
-OrderItem.belongsTo(Product), {foreignKey: 'product_id'};
+Order.hasMany(OrderItem, { foreignKey: 'order_id' });
+OrderItem.belongsTo(Order, {foreignKey: 'order_id'});
+OrderItem.belongsTo(Product, {foreignKey: 'product_id'});
 
 
-module.exports = {Category, Product, Cart, User, CartItem, Order};
+module.exports = {Category, Product, Cart, User, CartItem, Order, OrderItem};

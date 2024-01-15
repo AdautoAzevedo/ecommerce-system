@@ -21,8 +21,7 @@ const processOrder = async (req, res) => {
             quantity: item.quantity,
 
         }));
-        console.log("CartItems: ", cart.cartItems);
-        console.log("Order Items: ", orderItems);
+      
         const totalPrice = cart.totalPrice;
         
         const order = await Order.create({
@@ -35,8 +34,8 @@ const processOrder = async (req, res) => {
             order:{
                 order_id: order.order_id,
                 user_id: order.user_id,
-                totalPrice: order.totalPrice,
-                orderItems: orderItems,
+                total_price: order.totalPrice,
+                order_items: orderItems,
             },
         });
     } catch (error) {

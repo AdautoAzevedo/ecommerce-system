@@ -8,11 +8,11 @@ const processPayment = async (req, res) => {
         const orderDetails = await Order.findOne({
             where: {user_id: user_id},
         });
-
+        
         if (!orderDetails) {
             return res.status(404).json({message: "Order not found"});
         }
-
+        
         const totalPrice = orderDetails.totalPrice;
 
         const paymentSuccess = validatePayment(cardInfo); 
@@ -38,14 +38,17 @@ const validatePayment = (cardInfo) => {
         cvv: '123'
     };
 
+    
     if (
         cardInfo.cardNumber === correctCardInfo.cardNumber &&
         cardInfo.expirationDate === correctCardInfo.expirationDate &&
         cardInfo.cardholderName === correctCardInfo.cardholderName &&
         cardInfo.cvv === correctCardInfo.cvv
     ) {
+        console.log("true!!");
         return true;
     } else {
+        console.log("FALSE!!");
         return false;
     }
 }

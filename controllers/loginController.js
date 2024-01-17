@@ -27,8 +27,12 @@ const handleLogin = async (req, res) => {
             )
 
             try {
-                const cart = await user.createCart();
-                console.log("Cart created:", cart);
+                let cart = await user.getCart();
+                if (!cart) {
+                    console.log("Cart created");
+                    cart = await user.createCart();                    
+                }
+                
             } catch (error) {
                 console.log("Error creating cart: ", error);
             }

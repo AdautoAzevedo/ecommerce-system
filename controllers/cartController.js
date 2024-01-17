@@ -121,7 +121,19 @@ const updateCartItems = async(req, res) => {
         if (result[0] === 0) {
             return res.status(404).send('Item not found in the cart');
         }
-      
+       
+        const cart = await Cart.findOne({
+            where: {user_id: user_id},
+            include: [{ model: CartItem, include: [Product] }],
+        });
+
+        const updatedCart = await Cart.findByPk(cart.cart_id, {
+            include: [{model: CartItem, include: [Product] }],
+        });
+
+        let totalCartPrice = calculateTotalCartPrice(updatedCart.cartItems);
+        await updatedCart.update({ totalPrice: totalCartPrice.toFixed(2) }); 
+
         res.status(200).send('Cart item updated');
     } catch (error) {
         console.error('Error:', error);

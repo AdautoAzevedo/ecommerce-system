@@ -7,10 +7,7 @@ const addItem = async (req, res) => {
     const {productId }= req.body;
 
     try {
-        const cart = await Cart.findOne({
-            where: {user_id: user_id},
-            include: [{ model: CartItem, include: [Product] }],
-        });
+        const cart = await fetchUserCart(user_id);
 
         if (!cart) return res.status(404).send('Cart not found');
 
@@ -23,12 +20,7 @@ const addItem = async (req, res) => {
             await cart.createCartItem({ product_id: productId, quantity: 1});
         }
 
-        const updatedCart = await Cart.findByPk(cart.cart_id, {
-            include: [{model: CartItem, include: [Product] }],
-        });
-
-        let totalCartPrice = calculateTotalCartPrice(updatedCart.cartItems);
-        await updatedCart.update({ totalPrice: totalCartPrice.toFixed(2) });            
+        await updateCartPrice(cart);
         
         res.status(200).send('Item added to the cart');
     } catch (error) {
@@ -92,8 +84,10 @@ const removeFromCart = async(req, res) => {
             }]
         });    
         if (deletedItem === 0) return res.status(404).send('Item not found in the cart');
+        const cart = await fetchUserCart(user_id);
+        await updateCartPrice(cart);
 
-        res.status(200).send('Item removed from the cart');
+        res.status(204).send('Item removed from the cart');
     } catch (error) {
         console.error('Error:', error);
         res.status(500).send('Failed to remove item from the cart');
@@ -122,17 +116,8 @@ const updateCartItems = async(req, res) => {
             return res.status(404).send('Item not found in the cart');
         }
        
-        const cart = await Cart.findOne({
-            where: {user_id: user_id},
-            include: [{ model: CartItem, include: [Product] }],
-        });
-
-        const updatedCart = await Cart.findByPk(cart.cart_id, {
-            include: [{model: CartItem, include: [Product] }],
-        });
-
-        let totalCartPrice = calculateTotalCartPrice(updatedCart.cartItems);
-        await updatedCart.update({ totalPrice: totalCartPrice.toFixed(2) }); 
+        const cart = await fetchUserCart(user_id);
+        await updateCartPrice(cart);
 
         res.status(200).send('Cart item updated');
     } catch (error) {
@@ -141,6 +126,7 @@ const updateCartItems = async(req, res) => {
     }
 }
 
+//Auxiliary functions
 const calculateTotalCartPrice = (cartItems) => {
     let totalCartPrice = 0;
     cartItems.forEach((item) => {
@@ -150,5 +136,21 @@ const calculateTotalCartPrice = (cartItems) => {
     })
     return totalCartPrice;
 }
+
+const fetchUserCart = async (user_id) => {
+    return await Cart.findOne({
+        where: {user_id: user_id},
+        include: [{ model: CartItem, include: [Product] }],
+    });
+}
+
+const updateCartPrice = async (cart) => {
+    const updatedCart = await Cart.findByPk(cart.cart_id, {
+        include: [{model: CartItem, include: [Product] }],
+    });
+
+    let totalCartPrice = calculateTotalCartPrice(updatedCart.cartItems);
+    await updatedCart.update({ totalPrice: totalCartPrice.toFixed(2) });
+};
 
 module.exports = {addItem, viewCart, updateCartItems, removeFromCart};

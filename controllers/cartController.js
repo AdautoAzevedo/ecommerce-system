@@ -46,12 +46,9 @@ const viewCart = async (req, res) => {
             return res.status(200).json([]); 
         }
 
-
-        let totalPrice = 0;
         const cartContents = cart.cartItems.map((item) => {
             const product = item.product;
             const itemTotalPrice = product.product_price * item.quantity;
-            totalPrice += itemTotalPrice;
 
             return{
                 item_id: item.cart_item_id,
@@ -60,8 +57,10 @@ const viewCart = async (req, res) => {
                 total_price: itemTotalPrice,
             };
         });
+
+        const totalPrice = calculateTotalCartPrice(cartItems);
         
-        res.status(200).json({total_price: totalPrice, items: cartContents});
+        res.status(200).json({total_price: totalPrice.toFixed(2), items: cartContents});
     } catch (error) {
         console.error('Error: ', error);
         res.status(500).send('Failed to retrieve cart contents');

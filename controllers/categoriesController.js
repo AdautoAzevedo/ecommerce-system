@@ -4,7 +4,6 @@ const Product = require('../model/product');
 const getAllCategories = async (req, res) => {
     try {
         const categoriesList = await category.findAll();
-        console.log(categoriesList);
         return res.json(categoriesList);
     } catch (error) {
         res.status(500).json({error: error.message});

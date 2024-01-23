@@ -20,7 +20,8 @@ const handleLogin = async (req, res) => {
             const accessToken = jwt.sign(
                 {
                     "user_id": user.dataValues.user_id,
-                    "user_name": user.dataValues.user_name
+                    "user_name": user.dataValues.user_name,
+                    "user_role": user.dataValues.user_role
                 },
                 process.env.ACCESS_TOKEN_SECRET,
                 {expiresIn: '20m'}

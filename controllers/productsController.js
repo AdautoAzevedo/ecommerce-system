@@ -37,12 +37,10 @@ const getProductById = async (req, res) => {
 
     try {
         const product = await Product.findByPk(index);
-
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
-
-        return res.status(201).json(product);
+        return res.status(200).json(product);
 
     } catch (error) {
         res.status(500).json({error: error.message});

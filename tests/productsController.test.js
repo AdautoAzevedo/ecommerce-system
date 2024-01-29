@@ -57,3 +57,102 @@ describe('storeNewProduct', () => {
         expect(res.json).toHaveBeenCalledWith({message: 'Category not found'});
     });
 });
+
+describe('getProductsById', () => {
+    it('returns a product by id', async () => {
+        const mockProduct = {id:1, name:'Test Product', price: 10.99, category_id: 1};
+
+        jest.spyOn(Product, 'findByPk').mockResolvedValue(mockProduct);
+
+        const req = {params: {index: 1}};
+        const res = {status: jest.fn().mockReturnThis(), json: jest.fn()};
+
+        await getProductById(req, res);
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith(mockProduct);
+    });
+
+    it('handles product not found', async () => {
+        jest.spyOn(Product, 'findByPk').mockResolvedValue(null);
+
+        const req = {params: {index: 1}};
+        const res = {status: jest.fn().mockReturnThis(), json: jest.fn()};
+
+        await getProductById(req, res);
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({error: "Product not found"});
+        
+    })
+
+    it('handles errors', async () => {
+        jest.spyOn(Product, 'findByPk').mockRejectedValue(new Error('Database error'));
+
+        const req = {params: {index: 1}};
+        const res = {status: jest.fn().mockReturnThis(),json: jest.fn()};
+
+        await getProductById(req, res);
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({error: 'Database error'});
+    });
+});
+
+describe('editProduct', () => {
+    it('edits an existing product', async () => {
+        const mockUpdatedProduct = {id: 1, name: 'Updated Product', price: 15.99};
+
+        jest.spyOn(Product, 'update').mockResolvedValue(mockUpdatedProduct);
+
+        const req = {params: {index: 1}, body: {name: 'Updated Product', price: 15.99}};
+        const res = {status: jest.fn().mockReturnThis(), json: jest.fn()};
+
+        await editProduct(req, res);
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith(mockUpdatedProduct);
+    });
+
+    it('handles errors', async () => {
+        jest.spyOn(Product, 'update').mockRejectedValue(new Error('Database error'));
+
+        const req = {params: {index: 1}, body: {name: 'Updated Product', price: 15.99}};
+        const res = {status: jest.fn().mockReturnThis(), json: jest.fn()};
+
+        await editProduct(req, res);
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({error: 'Database error'});
+    });
+});
+
+describe('deleteProduct', () => {
+    it('deletes an existing product', async () => {
+        jest.spyOn(Product, 'findByPk').mockResolvedValue({id: 1});
+
+        const req = {params: {index: 1}};
+        const res = {json: jest.fn()};
+
+        await deleteProduct(req, res);
+        expect(res.json).toHaveBeenCalledWith({message: 'Product deleted sucessfully'});
+    });
+
+    it('handles product not found', async () => {
+        jest.spyOn(Product, 'findByPk').mockResolvedValue(null);
+        
+        const req = {params: {index: 1}};
+        const res = {status: jest.fn().mockReturnThis(), json: jest.fn()};
+
+        await deleteProduct(req, res);
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({error: 'Product not found'});
+
+    })
+
+    it('handles errors', async () => {
+        jest.spyOn(Product, 'findByPk').mockRejectedValue(new Error('Database Error'));
+
+        const req = { params: { index: 1 } };
+        const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+        await deleteProduct(req, res);
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({ error: 'Database Error' });
+    });
+});

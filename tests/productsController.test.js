@@ -9,8 +9,11 @@ describe('getAllProducts', () => {
         const mockProductList = [{id:1, name: 'Product 1', price: 10.99}, {id: 2, name: 'Product 2', price: 20.99}];
 
         //Spies a existing function.
-        jest.spyOn(Product, 'findAll').mockResolvedValue(mockProductList); //Simulate Sequelize methods using 'jest.spyOn(). 
+        //Simulate Sequelize methods using 'jest.spyOn(). It returns a predefined value (mockProductList) instead of querying the actual db.
+        jest.spyOn(Product, 'findAll').mockResolvedValue(mockProductList); 
 
+        //Mock request and response objects to simulate HTTP req and res. 
+        //It must contain the necessary properties and methods that the controller function interact with.
         const req = {};
         const res = { json: jest.fn() };
 
@@ -154,5 +157,41 @@ describe('deleteProduct', () => {
         await deleteProduct(req, res);
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.json).toHaveBeenCalledWith({ error: 'Database Error' });
+    });
+});
+
+describe('getProductsByCategory', () => {
+    it('returns products by category id', async () => {
+        const mockCategory = {id: 1, name: 'Test Category', products:[{ id: 1, name: 'Product 1' }, { id: 2, name: 'Product 2' }]};
+
+        jest.spyOn(Category, 'findByPk').mockResolvedValue(mockCategory);
+
+        const req = {params: {category_id: 1} };
+        const res = {json: jest.fn()};
+
+        await getProductsByCategory(req, res);
+        expect(res.json).toHaveBeenCalledWith(mockCategory.products);
+    });
+
+    it('handles category not found', async () => {
+        jest.spyOn(Category, 'findByPk').mockResolvedValue(null);
+
+        const req = {params: {category_id: 1} };
+        const res = {status: jest.fn().mockReturnThis(), json: jest.fn()};
+
+        await getProductsByCategory(req, res);
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({message: 'Category not found'});
+    });
+
+    it('handles errors', async () => {
+        jest.spyOn(Category, 'findByPk').mockRejectedValue(new Error('Database error'));
+
+        const req = {params: {category_id: 1}};
+        const res = {status: jest.fn().mockReturnThis(), json: jest.fn()};
+
+        await getProductsByCategory(req, res);
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({error: 'Database error'});
     });
 });

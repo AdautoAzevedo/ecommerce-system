@@ -1,9 +1,9 @@
-const category = require('../model/category');
+const Category = require('../model/category');
 const Product = require('../model/product');
 
 const getAllCategories = async (req, res) => {
     try {
-        const categoriesList = await category.findAll();
+        const categoriesList = await Category.findAll();
         return res.json(categoriesList);
     } catch (error) {
         res.status(500).json({error: error.message});
@@ -14,7 +14,7 @@ const storeNewCategory = async (req, res) => {
       
     const {name} = req.body;
     try {
-        const newCategory = await category.create(
+        const newCategory = await Category.create(
             {category_name: name}
         );
         return res.status(201).json(newCategory);
@@ -27,16 +27,14 @@ const getCategoryById = async (req, res) => {
     const {index} = req.params;
 
     try {
-        const category = await category.findAll({
-            where: {category_id: index}
-        });
+        const category = await Category.findByPk(index);
 
         if (!category) {
-            return res.status(404).json({ error: 'category not found' });
+            return res.status(404).json({ error: 'Category not found' });
         }
-        res.status(201).json(category);
+        return res.status(200).json(category);
     } catch (error) {
-        res.status(500).json({error: error.message});
+        return res.status(500).json({error: error.message});
     } 
 };
 
@@ -45,7 +43,7 @@ const editCategory = async (req, res) => {
     const {name} = req.body;
 
     try {
-        const updatedCategory = await category.update(
+        const updatedCategory = await Category.update(
             {category_name: name},
             {where: {category_id: index}}
         );
@@ -59,13 +57,13 @@ const deleteCategory = async (req, res) => {
     const {index} = req.params;
 
     try {
-        const category = await category.findByPk(index);
+        const category = await Category.findByPk(index);
         
         if (!category) {
             return res.status(404).json({ error: 'category not found' });
         }
 
-        await category.destroy({
+        await Category.destroy({
             where: {category_id: index}
         });
         res.json({message: 'Category deleted sucessfully'});

@@ -66,4 +66,49 @@ describe('processOrder controller', () => {
             }
         });
     });
+
+    it('should handle error if cart is not found', async () => {
+        const req = {
+            user: {user_id: 1}
+        };
+
+        const res = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn()
+        };
+
+        Cart.findOne.mockResolvedValue(null);
+
+        await processOrder(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({message: "Failed to place order"});
+    });
+
+    it('should handle errors during order creation', async () => {
+        const req = {
+            user: {user_id: 1}
+        };
+
+        const res = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn()
+        };
+        const mockCartItem = {
+            product_id: 'someProductId',
+            product: { product_name: 'Some Product' },
+            quantity: 2
+        };
+        const mockCart = {
+            cartItems: [mockCartItem],
+            totalPrice: 20
+        };
+
+        Cart.findOne.mockResolvedValue(mockCart);
+        Order.create.mockRejectedValue(null);
+
+        await processOrder(req, res);
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({ message: 'Failed to place order' });
+    });
 })

@@ -41,4 +41,49 @@ describe('handleLogin', () => {
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({accessToken: 'fakeAccessToken'});
     });
-})
+
+    it('should return 401 if user is not found', async () => {
+        const req = {
+            body: {
+                userName: 'nonexistentuser',
+                password: 'somepassword'
+            }
+        };
+        const res = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn()
+        };
+
+        User.findOne.mockResolvedValue(null);
+        await handleLogin(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.json).toHaveBeenCalledWith({'message': 'User not found.'});
+    });
+
+    it('should return 401 if password is incorrect', async () => {
+        const req = {
+            body: {
+                userName: 'existentuser',
+                password: 'wrongpassword'
+            }
+        };
+
+        const mockUser = {
+            user_password: await bcrypt.hash('correctpassword', 10)
+        };
+
+        const res = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn()
+        };
+        
+        User.findOne.mockResolvedValue(mockUser);
+        bcrypt.compare = jest.fn().mockResolvedValue(false);
+
+        await handleLogin(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.json).toHaveBeenCalledWith({'message': 'Wrong password'});
+    });
+});

@@ -5,9 +5,7 @@ const processPayment = async (req, res) => {
         const { user_id } = req.user;
         const { cardInfo } = req.body;
 
-        const orderDetails = await Order.findOne({
-            where: {user_id: user_id},
-        });
+        const orderDetails = await Order.findOne({ where: {user_id: user_id} });
         
         if (!orderDetails) {
             return res.status(404).json({message: "Order not found"});
@@ -38,19 +36,12 @@ const validatePayment = (cardInfo) => {
         cvv: '123'
     };
 
-    
-    if (
+    return (
         cardInfo.cardNumber === correctCardInfo.cardNumber &&
         cardInfo.expirationDate === correctCardInfo.expirationDate &&
         cardInfo.cardholderName === correctCardInfo.cardholderName &&
         cardInfo.cvv === correctCardInfo.cvv
-    ) {
-        console.log("true!!");
-        return true;
-    } else {
-        console.log("FALSE!!");
-        return false;
-    }
+    )
 }
 
 module.exports= {processPayment};

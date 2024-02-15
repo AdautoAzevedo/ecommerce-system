@@ -3,8 +3,8 @@ const CartItem = require('../model/cartItem');
 const Product = require('../model/product');
 
 const addItem = async (req, res) => {
-    const {user_id} = req.user;
-    const {productId }= req.body;
+    const { user_id } = req.user;
+    const { productId }= req.body;
 
     try {
         const cart = await fetchUserCart(user_id);
@@ -46,18 +46,8 @@ const viewCart = async (req, res) => {
             return res.status(200).json([]); 
         }
 
-        const cartContents = cart.cartItems.map((item) => {
-            const product = item.product;
-            const itemTotalPrice = product.product_price * item.quantity;
-
-            return{
-                item_id: item.cart_item_id,
-                product_name: product.product_name,
-                quantity: item.quantity,
-                total_price: itemTotalPrice,
-            };
-        });
-
+        const cartContents = getCartContents(cartItems);
+        
         const totalPrice = calculateTotalCartPrice(cartItems);
         
         res.status(200).json({total_price: totalPrice.toFixed(2), items: cartContents});
@@ -96,19 +86,14 @@ const removeFromCart = async(req, res) => {
 const updateCartItems = async(req, res) => {
     const { user_id } = req.user;
     const { cartItemId } = req.params;
-    const  newQuantity  = req.body.quantity;
+    const { quantity: newQuantity } = req.body;
 
     try {
         const result = await CartItem.update(
             {quantity: newQuantity},
             {
                 where: {cart_item_id: cartItemId},
-                include: [{
-                    model: Cart,
-                    where: {
-                        user_id: user_id
-                    }
-                }]
+                include: [{ model: Cart, where: { user_id: user_id } }]
         });
 
         if (result[0] === 0) {
@@ -150,6 +135,19 @@ const updateCartPrice = async (cart) => {
 
     let totalCartPrice = calculateTotalCartPrice(updatedCart.cartItems);
     await updatedCart.update({ totalPrice: totalCartPrice.toFixed(2) });
+};
+
+const getCartItems = cartItems => {
+    return cartItems.map(item => {
+        const { product, quantity } = item;
+        const itemTotalPrice = parseFloat(product.product_price) * quantity;
+        return {
+            item_id: item.cart_item_id,
+            product_name: product.product_name,
+            quantity: quantity,
+            total_price: itemTotalPrice
+        };
+    });
 };
 
 module.exports = {addItem, viewCart, updateCartItems, removeFromCart};

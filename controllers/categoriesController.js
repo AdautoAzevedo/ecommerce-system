@@ -11,12 +11,10 @@ const getAllCategories = async (req, res) => {
 };
 
 const storeNewCategory = async (req, res) => {
-      
     const {name} = req.body;
     try {
-        const newCategory = await Category.create(
-            {category_name: name}
-        );
+        const newCategory = await Category.create( {category_name: name});
+
         return res.status(201).json(newCategory);
     } catch (error) {
         res.status(500).json({error: error.message});
@@ -63,9 +61,7 @@ const deleteCategory = async (req, res) => {
             return res.status(404).json({ error: 'category not found' });
         }
 
-        await Category.destroy({
-            where: {category_id: index}
-        });
+        await Category.destroy({ where: {category_id: index} });
         res.json({message: 'Category deleted sucessfully'});
     } catch (error) {
         res.status(500).json({error: error.message});

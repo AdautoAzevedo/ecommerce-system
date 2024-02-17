@@ -13,8 +13,10 @@ const verifyJWT = (req, res, next) => {
         token,
         process.env.ACCESS_TOKEN_SECRET,
         (err, decoded) => {
-            if (err) return res.status(403).json({'message': err});
-          
+            if (err) {
+                return res.status(403).json({'message': err.message});
+            }
+            
             if (!req.user) {
                 req.user = {};
             }

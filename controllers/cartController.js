@@ -46,9 +46,19 @@ const viewCart = async (req, res) => {
             return res.status(200).json([]); 
         }
 
-        const cartContents = getCartContents(cartItems);
+        const cartContents = cart.cartItems.map((item) => {
+            const product = item.product;
+            const itemTotalPrice = product.product_price * item.quantity;
+
+            return{
+                item_id: item.cart_item_id,
+                product_name: product.product_name,
+                quantity: item.quantity,
+                total_price: itemTotalPrice,
+            };
+        });
         
-        const totalPrice = calculateTotalCartPrice(cartItems);
+        const totalPrice = calculateTotalCartPrice(cart.cartItems);
         
         res.status(200).json({total_price: totalPrice.toFixed(2), items: cartContents});
     } catch (error) {
@@ -114,9 +124,9 @@ const updateCartItems = async(req, res) => {
 const calculateTotalCartPrice = (cartItems) => {
     let totalCartPrice = 0;
     cartItems.forEach((item) => {
+        console.log(item);
         const itemTotalPrice = parseFloat(item.product.product_price) *item.quantity;
         totalCartPrice += itemTotalPrice;
-
     })
     return totalCartPrice;
 }
@@ -137,10 +147,13 @@ const updateCartPrice = async (cart) => {
     await updatedCart.update({ totalPrice: totalCartPrice.toFixed(2) });
 };
 
-const getCartItems = cartItems => {
+const getCartContents = (cartItems) => {
+    console.log(cartItems);
     return cartItems.map(item => {
+        console.log("item.product: ", item.product);
         const { product, quantity } = item;
-        const itemTotalPrice = parseFloat(product.product_price) * quantity;
+        console.log("product: ", product);
+        const itemTotalPrice = parseFloat(item.product.product_price) * item.quantity;
         return {
             item_id: item.cart_item_id,
             product_name: product.product_name,

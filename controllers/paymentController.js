@@ -1,47 +1,21 @@
-const Order = require('../model/order');
+require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_API_TEST_KEY);
 
-const processPayment = async (req, res) => {
+const createPaymentIntent = async (req, res) => {
+
+    const { amount, currency } = req.body;
+
     try {
-        const { user_id } = req.user;
-        const { cardInfo } = req.body;
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount, currency,
+        });
 
-        const orderDetails = await Order.findOne({ where: {user_id: user_id} });
-        
-        if (!orderDetails) {
-            return res.status(404).json({message: "Order not found"});
-        }
-        
-        const totalPrice = orderDetails.totalPrice;
-
-        const paymentSuccess = validatePayment(cardInfo); 
-
-        if (paymentSuccess) {
-            await orderDetails.update({ status: 'paid' });
-            return res.status(200).json({message: "Payment successful", totalPrice});
-            
-        } else {
-            return res.status(400).json({ message: 'Payment failed. Please try again.' });
-        }
+        res.send({
+            clientSecret: paymentIntent.client_secret,
+        });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Internal server error' });
+        res.status(500).send({error: error.message});
     }
 }
 
-const validatePayment = (cardInfo) => {
-    const correctCardInfo = {
-        cardNumber: '1234567890123456',
-        expirationDate: '12/25',
-        cardholderName: 'John Doe',
-        cvv: '123'
-    };
-
-    return (
-        cardInfo.cardNumber === correctCardInfo.cardNumber &&
-        cardInfo.expirationDate === correctCardInfo.expirationDate &&
-        cardInfo.cardholderName === correctCardInfo.cardholderName &&
-        cardInfo.cvv === correctCardInfo.cvv
-    )
-}
-
-module.exports= {processPayment};
+module.exports = {createPaymentIntent};

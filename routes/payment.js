@@ -4,6 +4,6 @@ const paymentController = require("../controllers/paymentController");
 const verifyJWT = require("../middleware/verifyJWT");
 
 router.route('/')
-    .post(verifyJWT, paymentController.createPaymentIntent);
+    .post(paymentController.createPaymentIntent);
 
 module.exports = router;
